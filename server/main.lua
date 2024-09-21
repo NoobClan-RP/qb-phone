@@ -6,9 +6,11 @@ local Hashtags = {}
 local Calls = {}
 local Adverts = {}
 local GeneratedPlates = {}
-local WebHook = ''
+local WebHook = "https://discord.com/api/webhooks/1266054191952957527/k_EqggG4Wc6fe6Yr2_XRXs_JSzaStcjKRimK-ul7b8bUjXiCMC5BaurgdT_IaLi15kxt"
 local bannedCharacters = { '%', '$', ';' }
 local TWData = {}
+
+local emergancyCallTaker = nil -- 911
 
 -- Functions
 
@@ -161,7 +163,16 @@ exports('sendNewMailToOffline', sendNewMailToOffline)
 -- Callbacks
 
 QBCore.Functions.CreateCallback('qb-phone:server:GetCallState', function(_, cb, ContactData)
-    local Target = QBCore.Functions.GetPlayerByPhone(ContactData.number)
+    -- 911 start
+    local Target
+
+    if ContactData.number == '911' then
+        Target = emergancyCallTaker
+    else
+        Target = QBCore.Functions.GetPlayerByPhone(ContactData.number)
+    end
+    -- 911 end
+
     if Target ~= nil then
         if Calls[Target.PlayerData.citizenid] ~= nil then
             if Calls[Target.PlayerData.citizenid].inCall then
@@ -593,6 +604,14 @@ end)
 
 -- Events
 
+-- 911 start
+RegisterNetEvent('qb-phone:server:SetEmergancyCallTaker', function()
+    print('test')
+    local Player = QBCore.Functions.GetPlayer(source)
+    emergancyCallTaker = Player
+end)
+-- 911 stop
+
 RegisterNetEvent('qb-phone:server:AddAdvert', function(msg, url)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
@@ -734,9 +753,19 @@ end)
 RegisterNetEvent('qb-phone:server:CallContact', function(TargetData, CallId, AnonymousCall)
     local src = source
     local Ply = QBCore.Functions.GetPlayer(src)
-    local Target = QBCore.Functions.GetPlayerByPhone(TargetData.number)
+
+    -- 911 start
+    local Target
+
+    if TargetData.number == '911' then
+        Target = emergancyCallTaker
+    else
+        Target = QBCore.Functions.GetPlayerByPhone(TargetData.number)
+    end
+    -- 911 end
+
     if Target ~= nil then
-        TriggerClientEvent('qb-phone:client:GetCalled', Target.PlayerData.source, Ply.PlayerData.charinfo.phone, CallId, AnonymousCall)
+        TriggerClientEvent('qb-phone:client:GetCalled', Target.PlayerData.source, Ply.PlayerData.charinfo.phone, CallId, AnonymousCall, TargetData.number) -- 911 (TargetData.number)
     end
 end)
 
@@ -935,14 +964,32 @@ RegisterNetEvent('qb-phone:server:AddRecentCall', function(type, data)
 end)
 
 RegisterNetEvent('qb-phone:server:CancelCall', function(ContactData)
-    local Ply = QBCore.Functions.GetPlayerByPhone(ContactData.TargetData.number)
+    -- 911 start
+    local Ply
+
+    if ContactData.TargetData.number == '911' then
+        Ply = emergancyCallTaker
+    else
+        Ply = QBCore.Functions.GetPlayerByPhone(ContactData.TargetData.number)
+    end
+    -- 911 end
+
     if Ply ~= nil then
         TriggerClientEvent('qb-phone:client:CancelCall', Ply.PlayerData.source)
     end
 end)
 
 RegisterNetEvent('qb-phone:server:AnswerCall', function(CallData)
-    local Ply = QBCore.Functions.GetPlayerByPhone(CallData.TargetData.number)
+    -- 911 start
+    local Ply
+
+    if CallData.TargetData.number == '911' then
+        Ply = emergancyCallTaker
+    else
+        Ply = QBCore.Functions.GetPlayerByPhone(CallData.TargetData.number)
+    end
+    -- 911 end
+
     if Ply ~= nil then
         TriggerClientEvent('qb-phone:client:AnswerCall', Ply.PlayerData.source)
     end

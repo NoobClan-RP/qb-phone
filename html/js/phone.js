@@ -87,6 +87,12 @@ $(document).on('click', '.phone-recent-call', function(e){
     var RecendId = $(this).attr('id');
     var RecentData = $("#"+RecendId).data('recentData');
 
+    // 991 start
+    if (RecentData.number == '911') {
+        RecentData.name = 'Notruf (911)';
+    }
+    // 911 end
+
     cData = {
         number: RecentData.number,
         name: RecentData.name
@@ -139,9 +145,16 @@ $(document).on('click', ".phone-keypad-key-call", function(e){
 
     var InputNum = keyPadHTML;
 
+    // 911 start
+    var name = InputNum;
+    if (name == '911') {
+        name = 'Notruf (911)';
+    }
+    // 911 end
+
     cData = {
         number: InputNum,
-        name: InputNum,
+        name: name, // 911
     }
 
     $.post('https://qb-phone/CallContact', JSON.stringify({
@@ -485,6 +498,13 @@ $(document).on('click', '#phone-start-call', function(e){
 
 SetupCall = function(cData) {
     var retval = false;
+
+    // 911 start
+    if (cData.number == '911') {
+        cData.name = 'Notruf LSPD und Ambulance';
+    }
+    // 911 end
+
     $.post('https://qb-phone/CallContact', JSON.stringify({
         ContactData: cData,
         Anonymous: QB.Phone.Data.AnonymousCall,

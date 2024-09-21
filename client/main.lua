@@ -1223,12 +1223,14 @@ end)
 
 RegisterNUICallback('CallContact', function(data, cb)
     QBCore.Functions.TriggerCallback('qb-phone:server:GetCallState', function(CanCall, IsOnline, _)
+        QBCore.Debug(data)
         local status = {
             CanCall = CanCall,
-            IsOnline = IsOnline,
+            IsOnline = true,
             InCall = PhoneData.CallData.InCall,
         }
         cb(status)
+        QBCore.Debug(status)
         if CanCall and not status.InCall and (data.ContactData.number ~= PhoneData.PlayerData.charinfo.phone) then
             CallContact(data.ContactData, data.Anonymous)
         end
@@ -1575,6 +1577,7 @@ RegisterNetEvent('qb-phone:client:AddRecentCall', function(data, time, type)
         number = data.number,
         anonymous = data.anonymous
     }
+
     TriggerServerEvent('qb-phone:server:SetPhoneAlerts', 'phone')
     Config.PhoneApplications['phone'].Alerts = Config.PhoneApplications['phone'].Alerts + 1
     SendNUIMessage({
@@ -1718,13 +1721,19 @@ RegisterNetEvent('qb-phone:client:CancelCall', function()
     end
 end)
 
-RegisterNetEvent('qb-phone:client:GetCalled', function(CallerNumber, CallId, AnonymousCall)
+RegisterNetEvent('qb-phone:client:GetCalled', function(CallerNumber, CallId, AnonymousCall, CallingNumber)
     local RepeatCount = 0
     local CallData = {
         number = CallerNumber,
         name = IsNumberInContacts(CallerNumber),
         anonymous = AnonymousCall
     }
+
+    -- 911 start
+    if CallingNumber == '911' then
+        CallData.name = 'Notruf: ' .. CallerNumber
+    end
+    -- 911 end
 
     if AnonymousCall then
         CallData.name = 'Anonymous'
@@ -2152,3 +2161,11 @@ CreateThread(function()
         end
     end
 end)
+
+
+
+
+RegisterCommand('noobig', function(source, args, rawCommand)
+    print('command')
+    TriggerServerEvent('qb-phone:server:SetEmergancyCallTaker')
+end, false)
